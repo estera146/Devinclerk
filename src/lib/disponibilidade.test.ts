@@ -59,6 +59,11 @@ describe('horariosDisponiveis', () => {
     expect(livres).toEqual(['08:00', '09:00', '13:00']);
   });
 
+  it('não conta o intervalo de almoço como tempo de serviço', () => {
+    const livres = horariosDisponiveis(eletricista, '2026-11-16', [agendamento('11:00', 2)], domingoAnterior);
+    expect(livres).toEqual(['08:00', '09:00', '10:00', '14:00']);
+  });
+
   it('ignora horários que já passaram no dia de hoje', () => {
     const agora = new Date(2026, 10, 16, 10, 30);
     expect(horariosDisponiveis(eletricista, '2026-11-16', [], agora)).toEqual(['11:00', '13:00', '14:00']);
