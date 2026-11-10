@@ -78,7 +78,7 @@ export default function App() {
         {aba === 'agendar' && (
           <Agendamento key={chaveAgendamento} agendamentos={agendamentos} setAgendamentos={setAgendamentos} preSelecao={preSelecao} />
         )}
-        {aba === 'orcamento' && <OrcamentoPrevio agendar={(servicoIds, porte) => agendarCom({ servicoIds, porte })} />}
+        {aba === 'orcamento' && <OrcamentoPrevio agendar={(servicoIds, porte, pecas) => agendarCom({ servicoIds, porte, pecas })} />}
       </main>
 
       <footer className="rodape">

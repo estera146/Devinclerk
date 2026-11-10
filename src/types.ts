@@ -32,6 +32,7 @@ export interface Servico {
   maoDeObraMin: number;
   maoDeObraMax: number;
   duracaoHoras: number;
+  pecas?: { id: string; quantidade: number }[];
 }
 
 export type PorteVeiculo = 'popular' | 'medio' | 'importado';
@@ -52,4 +53,5 @@ export interface Agendamento {
   estimativaMin: number;
   estimativaMax: number;
   duracaoHoras: number;
+  pecas?: { id: string; quantidade: number }[];
 }

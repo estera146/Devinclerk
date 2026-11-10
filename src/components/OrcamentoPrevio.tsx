@@ -8,7 +8,7 @@ import { ResumoOrcamento } from './ResumoOrcamento';
 import { SeletorServicos } from './SeletorServicos';
 
 interface Props {
-  agendar: (servicoIds: string[], porte: PorteVeiculo) => void;
+  agendar: (servicoIds: string[], porte: PorteVeiculo, pecas: ItemPeca[]) => void;
 }
 
 export function OrcamentoPrevio({ agendar }: Props) {
@@ -87,7 +87,7 @@ export function OrcamentoPrevio({ agendar }: Props) {
         <aside className="cartao">
           <h3>Estimativa</h3>
           <ResumoOrcamento orcamento={orcamento} />
-          <button className="btn btn-destaque largura-total" disabled={servicos.length === 0} onClick={() => agendar(servicos, porte)}>
+          <button className="btn btn-destaque largura-total" disabled={servicos.length === 0 && pecas.length === 0} onClick={() => agendar(servicos, porte, pecas)}>
             Agendar com este orçamento
           </button>
         </aside>

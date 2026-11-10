@@ -1,11 +1,12 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { DIAS_AGENDA, LOJA } from '../config';
 import { ELETRICISTAS } from '../data/eletricistas';
+import { PECAS } from '../data/pecas';
 import { PORTES, SERVICOS } from '../data/servicos';
 import { formatarData, proximosDias } from '../lib/datas';
 import { horariosDisponiveis } from '../lib/disponibilidade';
 import { formatarMoeda, linkWhatsApp } from '../lib/formato';
-import { calcularOrcamento } from '../lib/orcamento';
+import { calcularOrcamento, type ItemPeca } from '../lib/orcamento';
 import type { Agendamento as TAgendamento, PorteVeiculo } from '../types';
 import { ResumoOrcamento } from './ResumoOrcamento';
 import { SeletorServicos } from './SeletorServicos';
@@ -14,6 +15,7 @@ export interface PreSelecao {
   eletricistaId?: string;
   servicoIds?: string[];
   porte?: PorteVeiculo;
+  pecas?: ItemPeca[];
 }
 
 interface Props {
@@ -25,15 +27,24 @@ interface Props {
 const QUALQUER = 'qualquer';
 const LIMITE_RESUMO = 500;
 
+function descreverPecas(itens: ItemPeca[] = []): string[] {
+  return itens.flatMap((i) => {
+    const peca = PECAS.find((p) => p.id === i.id);
+    return peca ? [`${i.quantidade}x ${peca.nome}`] : [];
+  });
+}
+
 function mensagemAgendamento(a: TAgendamento): string {
   const eletricista = ELETRICISTAS.find((e) => e.id === a.eletricistaId);
   const servicos = SERVICOS.filter((s) => a.servicoIds.includes(s.id)).map((s) => s.nome);
+  const pecas = descreverPecas(a.pecas);
   return [
     `Olá${eletricista ? `, ${eletricista.nome.split(' ')[0]}` : ''}! Agendamento pela ${LOJA.nome}:`,
     `📅 ${formatarData(a.data)} às ${a.hora}`,
     `👤 ${a.cliente} — ${a.telefone}`,
     `🚗 ${a.veiculo}${a.placa ? ` (placa ${a.placa})` : ''}`,
     servicos.length ? `🔧 Serviços: ${servicos.join(', ')}` : '',
+    pecas.length ? `🔩 Peças: ${pecas.join(', ')}` : '',
     `📝 Problema: ${a.resumo}`,
     `💰 Estimativa: ${formatarMoeda(a.estimativaMin)} – ${formatarMoeda(a.estimativaMax)}`,
   ]
@@ -57,6 +68,7 @@ export function Agendamento({ agendamentos, setAgendamentos, preSelecao }: Props
   const [placa, setPlaca] = useState('');
   const [porte, setPorte] = useState<PorteVeiculo>(preSelecao.porte ?? 'popular');
   const [servicoIds, setServicoIds] = useState<string[]>(preSelecao.servicoIds ?? []);
+  const [pecas, setPecas] = useState<ItemPeca[]>(preSelecao.pecas ?? []);
   const [resumo, setResumo] = useState('');
   const [eletricistaId, setEletricistaId] = useState(preSelecao.eletricistaId ?? QUALQUER);
   const [data, setData] = useState('');
@@ -65,7 +77,7 @@ export function Agendamento({ agendamentos, setAgendamentos, preSelecao }: Props
   const [confirmado, setConfirmado] = useState<TAgendamento | null>(null);
 
   const agora = new Date();
-  const orcamento = calcularOrcamento(servicoIds, porte);
+  const orcamento = calcularOrcamento(servicoIds, porte, pecas);
   const dias = useMemo(() => proximosDias(new Date(), DIAS_AGENDA), []);
   const candidatos = eletricistaId === QUALQUER ? ELETRICISTAS : ELETRICISTAS.filter((e) => e.id === eletricistaId);
 
@@ -103,6 +115,7 @@ export function Agendamento({ agendamentos, setAgendamentos, preSelecao }: Props
       estimativaMin: orcamento.totalMin,
       estimativaMax: orcamento.totalMax,
       duracaoHoras: orcamento.duracaoHoras,
+      pecas,
     };
     setAgendamentos([...agendamentos, novo]);
     setConfirmado(novo);
@@ -248,7 +261,25 @@ export function Agendamento({ agendamentos, setAgendamentos, preSelecao }: Props
           ) : (
             <p className="texto-suave">Escolha um dia e horário.</p>
           )}
-          {servicoIds.length > 0 ? (
+          {pecas.length > 0 && (
+            <ul className="lista-pecas-orcamento">
+              {pecas.map((item) => {
+                const peca = PECAS.find((p) => p.id === item.id);
+                if (!peca) return null;
+                return (
+                  <li key={item.id}>
+                    <span>
+                      {item.quantidade}x {peca.nome}
+                    </span>
+                    <button type="button" className="btn btn-link" onClick={() => setPecas(pecas.filter((p) => p.id !== item.id))}>
+                      remover
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          {servicoIds.length > 0 || pecas.length > 0 ? (
             <ResumoOrcamento orcamento={orcamento} />
           ) : (
             <p className="texto-suave">Selecione um serviço para ver o orçamento prévio, ou deixe o eletricista avaliar.</p>
