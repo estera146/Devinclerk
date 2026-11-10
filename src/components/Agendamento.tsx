@@ -41,6 +41,15 @@ function mensagemAgendamento(a: TAgendamento): string {
     .join('\n');
 }
 
+function mensagemCancelamento(a: TAgendamento): string {
+  return [
+    `Olá! Preciso cancelar o agendamento feito pela ${LOJA.nome}:`,
+    `📅 ${formatarData(a.data)} às ${a.hora}`,
+    `👤 ${a.cliente} — ${a.telefone}`,
+    `🚗 ${a.veiculo}${a.placa ? ` (placa ${a.placa})` : ''}`,
+  ].join('\n');
+}
+
 export function Agendamento({ agendamentos, setAgendamentos, preSelecao }: Props) {
   const [cliente, setCliente] = useState('');
   const [telefone, setTelefone] = useState('');
@@ -278,9 +287,16 @@ export function Agendamento({ agendamentos, setAgendamentos, preSelecao }: Props
                   <a className="btn btn-claro" href={linkWhatsApp(e?.whatsapp ?? LOJA.whatsapp, mensagemAgendamento(a))} target="_blank" rel="noreferrer">
                     WhatsApp
                   </a>
-                  <button className="btn btn-perigo" onClick={() => setAgendamentos(agendamentos.filter((x) => x.id !== a.id))}>
-                    Cancelar
-                  </button>
+                  <a
+                    className="btn btn-perigo"
+                    href={linkWhatsApp(e?.whatsapp ?? LOJA.whatsapp, mensagemCancelamento(a))}
+                    target="_blank"
+                    rel="noreferrer"
+                    title="Cancela o agendamento e avisa o eletricista pelo WhatsApp"
+                    onClick={() => setAgendamentos(agendamentos.filter((x) => x.id !== a.id))}
+                  >
+                    Cancelar e avisar
+                  </a>
                 </div>
               </article>
             );
